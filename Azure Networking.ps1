@@ -37,23 +37,32 @@ foreach ($AzSub in $AzSub)
                     Write-Host "               Network Card        :" $InternalNIC.Name
                     Write-Host "                   Private IP      :" $VMNIC.IpConfigurations[0].PrivateIpAddress
                     $NIC = $VM.NetworkProfile.NetworkInterfaces[0].Id.Split('/') | select -Last 1
-                    $PIPName =  (Get-AzNetworkInterface -ResourceGroupName $VM.ResourceGroupName -Name $NIC).IpConfigurations.PublicIpAddress.Id.Split('/') | select -Last 1
-                    $PIPAddress = (Get-AzPublicIpAddress -ResourceGroupName $VM.ResourceGroupName -Name $PIPName).IpAddress
-                    Write-Host "                   Public IP       :" $PIPAddress
-                    If ($VM.PowerState -eq "VM running")
+                    $PIP =  (Get-AzNetworkInterface -ResourceGroupName $VM.ResourceGroupName -Name $NIC).IpConfigurations.PublicIpAddress.Id
+                    If ([string]::IsNullOrWhiteSpace($PIP))
                         {
-                        $NSGs = Get-AzEffectiveNetworkSecurityGroup -NetworkInterfaceName $InternalNIC.Name -ResourceGroupName $InternalNIC.ResourceGroupName
-                        $NumRules = $NSGs.EffectiveSecurityRules.Count
-                        $RuleCount = 0
-                        While ($RuleCount -lt $NumRules)
+                        Write-Host "                   Public IP       : Not Assigned"
+                        }
+                        Else
+                        { 
+                        $PIPName = $PIP.Split('/') | select -Last 1
+                        $PIPAddress = (Get-AzPublicIpAddress -ResourceGroupName $VM.ResourceGroupName -Name $PIPName).IpAddress
+                        Write-Host "                   Public IP       :" $PIPAddress
+                        If ($VM.PowerState -eq "VM running")
                             {
-                            Write-Host "                       NSG Name    :" $NSGs.EffectiveSecurityRules[$RuleCount].Name.Split('/')[-1]
-                            Write-Host "                       Direction   :" $NSGs.EffectiveSecurityRules[$RuleCount].Direction
-                            Write-Host "                       Source Addr :" $NSGs.EffectiveSecurityRules[$RuleCount].SourceAddressPrefix
-                            Write-Host "                       Dest. Addr  :" $NSGs.EffectiveSecurityRules[$RuleCount].DestinationAddressPrefix
-                            Write-Host "                       Source Port :" $NSGs.EffectiveSecurityRules[$RuleCount].SourcePortRange
-                            Write-Host "                       Dest. Port  :" $NSGs.EffectiveSecurityRules[$RuleCount].DestinationPortRange
-                            $RuleCount += 1
+                            $NSGs = Get-AzEffectiveNetworkSecurityGroup -NetworkInterfaceName $InternalNIC.Name -ResourceGroupName $InternalNIC.ResourceGroupName
+                            $NumRules = $NSGs.EffectiveSecurityRules.Count
+                            $RuleCount = 0
+                            While ($RuleCount -lt $NumRules)
+                                {
+                                Write-Host "                       Priority    :" $NSGs.EffectiveSecurityRules[$RuleCount].Priority
+                                Write-Host "                       NSG Name    :" $NSGs.EffectiveSecurityRules[$RuleCount].Name.Split('/')[-1]
+                                Write-Host "                       Direction   :" $NSGs.EffectiveSecurityRules[$RuleCount].Direction
+                                Write-Host "                       Source Addr :" $NSGs.EffectiveSecurityRules[$RuleCount].SourceAddressPrefix
+                                Write-Host "                       Dest. Addr  :" $NSGs.EffectiveSecurityRules[$RuleCount].DestinationAddressPrefix
+                                Write-Host "                       Source Port :" $NSGs.EffectiveSecurityRules[$RuleCount].SourcePortRange
+                                Write-Host "                       Dest. Port  :" $NSGs.EffectiveSecurityRules[$RuleCount].DestinationPortRange
+                                $RuleCount += 1
+                                }
                             }
                         }
                     Write-Host " "
