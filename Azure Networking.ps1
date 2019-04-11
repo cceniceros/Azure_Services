@@ -10,7 +10,7 @@ foreach ($AzSub in $AzSub)
     $VNETs = Get-AzVirtualNetwork 
     foreach ($VNET in $VNETs)
         {
-        Write-Host "   Virtual Network                 :" $VNET.Name 
+        Write-Host "   Virtual Network                 :" $VNET.Name "in" $VNET.Location
         $SubNets = Get-AzVirtualNetworkSubnetConfig -VirtualNetwork $VNET 
         foreach ($Subnet in $Subnets)
             {
