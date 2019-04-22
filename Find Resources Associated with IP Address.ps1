@@ -35,7 +35,7 @@ If($IPValid)
                     {
                     Write-Host "The $IPAddress IP Address is not available" -ForegroundColor Red
                     Write-Host "as part of" $VNET.Name "Virtual Network's Address space" -ForegroundColor Red
-                    $NIC = Get-AzNetworkInterface | Where {$_.IpConfigurations.PrivateIpAddress -eq $IPAddress}
+                    $NIC = Get-AzNetworkInterface | Where {$_.IpConfigurations.PrivateIpAddress -eq $IPAddress -and $_.ResourceGroupName -eq $VNET.ResourceGroupName}
                     If ($NIC -eq $null)
                         {
                         $NLB = Get-AzLoadBalancer | Where {$_.FrontendIpConfigurations.PrivateIpAddress -eq $IPAddress}
